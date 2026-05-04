@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="getStockFlow" doc:id="9a54e673-c02c-4568-bd3a-8595de658556" >
+		<set-variable value="#[attributes.queryParams.sku]" doc:name="Set Variable" doc:id="50eb23b3-13df-44e2-bdfd-cdf77f0bc752" variableName="sku" />
+		<logger level="INFO" doc:name="Before DB" doc:id="a5426bb1-f40c-4edb-be1b-706ccad8dc67" message="#[payload]"/>
+		<db:select doc:name="Select" doc:id="e62f64e2-8778-4e4f-80eb-6b39235ac2ff" config-ref="Database_Config" >
+			<db:sql ><![CDATA[SELECT sku, available_quantity, is_available
+FROM stock
+WHERE sku = :sku
+
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  sku: vars.sku
+}]]]></db:input-parameters>
+		</db:select>
+		<logger level="INFO" doc:name="After DB " doc:id="2fa9d3d5-2c70-462e-b731-702c59d8cf9c" message="#[write(payload, 'application/json')]"/>
+		<ee:transform doc:name="Transform Message" doc:id="f38e4497-d197-49db-9ace-4db3cc5203e0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var item = payload[0] default null
+
+---
+if (item == null)
+  {
+    sku: vars.sku,
+    availableQuantity: 0,
+    isAvailable: false,
+    status: "SKU NOT FOUND"
+  }
+else
+  {
+    sku: item.sku,
+    availableQuantity: item.available_quantity,
+    isAvailable: item.is_available
+  }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

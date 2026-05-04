@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="postOrdersFlow" doc:id="a4775ddd-3110-4ca8-bd3e-b772c2f90d06" >
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="38c13092-0324-45fd-8694-a35f75ac3e90" variableName="originalPayload"/>
+		<set-variable value="#[payload.items]" doc:name="Set Variable" doc:id="1e30d262-21ae-45c5-a1da-1723ab5f15d1" variableName="items"/>
+		<set-variable value="#[[]]" doc:name="Set Variable" doc:id="385fe417-13b8-483e-ac43-c74fb534fcf2" variableName="itemResults"/>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	 skus: vars.items map (item) -&gt; item.sku&#10;}]" doc:name="Set Payload" doc:id="f2bf2639-7e2a-4b27-ba32-e4dca15c8284" />
+		<!-- [STUDIO:"Request"]<http:request doc:name="Request" doc:id="84f76958-04c4-478b-a3fb-038bcd834207" config-ref="HTTP_Request_config1" method="POST" path="/stock/availability" responseTimeout="10000" /> [STUDIO] -->
+		<flow-ref doc:name="Flow Reference" doc:id="26faacd7-8f88-4f10-9c2b-5bafb87c011a" name="postStockFlow"/>
+		<set-variable value="#[payload.stock]" doc:name="Set Variable" doc:id="f7d7ae6a-3296-4bdc-86f5-4d6f59920c4d" variableName="stockResponse"/>
+		<set-payload value="#[vars.items]" doc:name="Set Payload" doc:id="6fed5f57-aef9-477d-a55f-0a8f47000a65" />
+		<foreach doc:name="For Each" doc:id="79e4a44e-4dad-4ebc-97f1-8138bfaa6cbf" collection="#[payload]">
+			<set-variable value="#[payload]" doc:name="Set Variable" doc:id="48603d78-b4f0-4374-b2e2-ee9b984bf8ed" variableName="currentItem"/>
+			<set-variable value="#[(vars.stockResponse filter (s) -&gt; s.sku == vars.currentItem.sku)[0] default {}]" doc:name="Set Variable" doc:id="d037e60d-5a1d-4477-bb49-29c1c657b55d" variableName="stockItem"/>
+			<choice doc:name="Choice" doc:id="883c636a-688a-4eb7-8eb0-e515fa42d780" >
+				<when expression="#[(vars.stockItem.availableQuantity default 0) &gt;= (vars.currentItem.quantity as Number)]">
+					<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;&#10;vars.itemResults ++ [{&#10;	sku: vars.currentItem.sku,&#10;	quantity: vars.currentItem.quantity,&#10;	status: 'Order Placed'&#10;}]]" doc:name="Set Variable" doc:id="e14817d7-1116-4552-a35a-a6a507f52db7" variableName="itemResults"/>
+				</when>
+				<otherwise >
+					<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.itemResults ++ &#10;[{&#10;	sku: vars.currentItem.sku,&#10;	quantity: vars.currentItem.quantity,&#10;	status: 'Not Available'&#10;}]]" doc:name="Set Variable" doc:id="c53db9bf-7de8-4765-bafb-11edaa975cd2" variableName="itemResults"/>
+				</otherwise>
+			</choice>
+		</foreach>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  items: vars.itemResults map (item) -&gt; {&#10;    sku: item.sku,&#10;    quantity: item.quantity&#10;  }&#10;}]" doc:name="Set Payload" doc:id="c0b0bab6-4bd7-4237-9564-179dd7d1b599" />
+		<http:request doc:name="Request" doc:id="ffb517bf-802f-4d55-ade5-e37582df0a47" method="POST" path="/api/orders" config-ref="HTTP_Request_config" responseTimeout="100000000"/>
+		<set-variable value="#[var items = vars.itemResults&#10;var placed = sizeOf(items filter (i) -&gt; i.status == 'Order Placed')&#10;---&#10;if ( placed == sizeOf(items) ) 'SUCCESS'&#10;        else if ( placed &gt; 0 ) 'PARTIAL_SUCCESS'&#10;        else 'FAILED']" doc:name="Set Variable" doc:id="8a90733a-3a64-4554-80cf-6f1c77e0e3e6" variableName="finalStatus"/>
+		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  phoneNumber: vars.originalPayload.customer.phoneNumber,&#10;  requestStatus: vars.finalStatus,&#10;  itemResults: vars.itemResults&#10;}]' doc:name="Set Payload" doc:id="07c4ed91-76c6-4938-8e69-caf2112a9b61" />
+	</flow>
+</mule>

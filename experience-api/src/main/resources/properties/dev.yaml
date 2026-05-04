@@ -1,0 +1,17 @@
+#### HTTP Listener config  Details ####
+http:
+  listener:
+    host: "0.0.0.0"
+    port: "8081"
+    path: "api/*"
+   
+#### HTTP Request config  Details ####
+process-api:
+  host: "process-api-impl-n93mf2.5sc6y6-4.usa-e2.cloudhub.io"
+  port: "443"
+  reconnection:
+    frequency: "2000"
+    attempts: "3"
+    
+apiId: "20884569"
+ 

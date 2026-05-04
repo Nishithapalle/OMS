@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    
+	<flow name="experience-api-main">
+        <http:listener config-ref="experience-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[error.errorMessage.payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="experience-api-config" />
+		<error-handler ref="Common-Error_Handler" />
+       
+    </flow>
+    <flow name="post:\orders:application\json:experience-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="a487cac8-d1a3-4b6f-861c-e979ab251f1f" />
+		<flow-ref doc:name="Flow Reference" doc:id="5a003d71-5c02-450b-b7e8-7e175de1699d" name="postOrderFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="5fe09e33-9ac9-483d-995a-ca80bd40e7c5" message="#[payload]"/>
+		<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+  phoneNumber: "9876543210",
+  requestStatus: "PARTIAL_SUCCESS",
+  itemResults: [
+    {
+      sku: "MOB-IPH15-128-BLK",
+      quantity: 1,
+      status: "Order Placed",
+      orderId: "ORD-20261012-000091"
+    }, 
+    {
+      sku: "LAP-DELL-5480",
+      quantity: 2,
+      status: "Sorry, not placed"
+    }, 
+    {
+      sku: "EAR-BT-SONY-WH",
+      quantity: 1,
+      status: "Order Placed",
+      orderId: "ORD-20261012-000092"
+    }, 
+    {
+      sku: "TV-SAM-55-UHD",
+      quantity: 1,
+      status: "Sorry, not placed"
+    }, 
+    {
+      sku: "TAB-SAM-S9",
+      quantity: 3,
+      status: "Order Placed",
+      orderId: "ORD-20261012-000093"
+    }
+  &#93;
+} as Object {encoding: "UTF-8", mediaType: "application/json"}&#93;&#93;></ee:set-payload>
+            </ee:message>
+        </ee:transform> [STUDIO] -->
+    </flow>
+    <flow name="post:\stock\availability:application\json:experience-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="9e8fd91f-5900-43f9-a9c0-f090efaba47d" message="#[payload]"/>
+		<flow-ref doc:name="Flow Reference" doc:id="2ea1943b-b98f-4f6e-acda-03bfb29f1213" name="postStockFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="83e34f92-bf0d-4c18-ab75-ad9778278c58" message="#[payload]"/>
+		<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+  stock: [
+    {
+      sku: "MOB-IPH15-128-BLK",
+      availableQuantity: 14,
+      isAvailable: true
+    }, 
+    {
+      sku: "LAP-DELL-5480",
+      availableQuantity: 0,
+      isAvailable: false
+    }, 
+    {
+      sku: "EAR-BT-SONY-WH",
+      availableQuantity: 38,
+      isAvailable: true
+    }, 
+    {
+      sku: "TV-SAM-55-UHD",
+      availableQuantity: 0,
+      isAvailable: false
+    }, 
+    {
+      sku: "TAB-SAM-S9",
+      availableQuantity: 7,
+      isAvailable: true
+    }
+  &#93;
+} as Object {encoding: "UTF-8", mediaType: "application/json"}&#93;&#93;></ee:set-payload>
+            </ee:message>
+        </ee:transform> [STUDIO] -->
+    </flow>
+</mule>

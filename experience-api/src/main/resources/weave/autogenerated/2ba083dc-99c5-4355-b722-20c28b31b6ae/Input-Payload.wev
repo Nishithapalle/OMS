@@ -1,0 +1,7 @@
+%dw 2.0
+
+type auto_2ba083dc_99c5_4355_b722_20c28b31b6ae_Input_Payload = {
+  stock: Array<{    availableQuantity: Number,     isAvailable: Boolean,     sku: String,     _?: Any  }>, 
+  _?: Any
+}
+

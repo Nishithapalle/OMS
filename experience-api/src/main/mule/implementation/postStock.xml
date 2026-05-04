@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="postStockFlow" doc:id="2ba083dc-99c5-4355-b722-20c28b31b6ae" >
+		<logger level="INFO" doc:name="Logger" doc:id="f2477c9b-f9b2-4c4c-9658-137c542b84bb" />
+		<http:request doc:name="Request" doc:id="cba33176-d613-4804-a046-9ffe60959d18" method="POST" path="/api/stock/availability" config-ref="HTTP_Request_config" responseTimeout="100000000">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"" : ""
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="0d9cc86d-2ea6-4f11-8013-82d1c25063d8" message="#[payload]"/>
+	</flow>
+</mule>

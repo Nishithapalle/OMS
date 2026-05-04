@@ -1,0 +1,9 @@
+%dw 2.0
+
+type auto_a4775ddd_3110_4ca8_bd3e_b772c2f90d06_Output_Payload = {
+  phoneNumber: String, 
+  itemResults: Array<{    quantity: Number,     orderId?: String,     sku: String,     status: String,     _?: Any  }>, 
+  requestStatus: String, 
+  _?: Any
+}
+

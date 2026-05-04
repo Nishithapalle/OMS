@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    
+    <flow name="process-api-main">
+        <http:listener config-ref="process-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <logger level="INFO" doc:name="Logger" doc:id="c0140ba4-c76d-454d-8505-e2c5857af568" />
+		<apikit:router config-ref="process-api-config" />
+		<error-handler ref="Common-Error_Handler" />
+       
+    </flow>
+    <flow name="post:\orders:application\json:process-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="8eccc748-a1a7-49a3-99e2-fc02d60b3513" message="#[payload]"/>
+		<choice doc:name="Choice" doc:id="770fa45a-7c82-4f68-9809-54c042a33e06" >
+			<when expression="#[sizeOf(payload.items map (item) -&gt; item.sku) &#10;    != &#10;    sizeOf((payload.items map (item) -&gt; item.sku) distinctBy $)]">
+				<raise-error doc:name="Raise error" doc:id="f7b7bed2-344c-4cf6-9ac7-5a3c03dcd4a6" type="BUSINESS:DUPLICATE_SKU" description='"Duplicate SKU found in request"'/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="81ec0c80-85b3-4714-b099-af5daca4c737" message="#[payload]"/>
+			</otherwise>
+		</choice>
+		<flow-ref doc:name="Flow Reference" doc:id="82805288-0fb5-47f4-9445-188567ec3e46" name="postOrdersFlow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="be0b4ae3-d3e0-4419-9cd0-a73e69070571" message="#[payload]"/>
+		<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+  phoneNumber: "9876543210",
+  requestStatus: "PARTIAL_SUCCESS",
+  itemResults: [
+    {
+      sku: "MOB-IPH15-128-BLK",
+      quantity: 1,
+      status: "Order Placed",
+      orderId: "ORD-20261012-000091"
+    }, 
+    {
+      sku: "LAP-DELL-5480",
+      quantity: 2,
+      status: "Sorry, not placed"
+    }, 
+    {
+      sku: "EAR-BT-SONY-WH",
+      quantity: 1,
+      status: "Order Placed",
+      orderId: "ORD-20261012-000092"
+    }, 
+    {
+      sku: "TV-SAM-55-UHD",
+      quantity: 1,
+      status: "Sorry, not placed"
+    }, 
+    {
+      sku: "TAB-SAM-S9",
+      quantity: 3,
+      status: "Order Placed",
+      orderId: "ORD-20261012-000093"
+    }
+  &#93;
+} as Object {encoding: "UTF-8", mediaType: "application/json"}&#93;&#93;></ee:set-payload>
+            </ee:message>
+        </ee:transform> [STUDIO] -->
+    </flow>
+    <flow name="post:\stock\availability:application\json:process-api-config">
+        <logger level="INFO" doc:name="Start Logger" doc:id="4adcfbc5-b103-4b35-a56f-246142e5f850" />
+		<flow-ref doc:name="Flow Reference" doc:id="751ecfc7-1ad1-4691-bcb4-89eed1595032" name="postStockFlow"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="0228cd87-9d17-48fa-9081-96e30952db18" />
+    </flow>
+</mule>

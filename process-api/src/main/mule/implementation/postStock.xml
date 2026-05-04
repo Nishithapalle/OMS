@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="postStockFlow" doc:id="97b71ad3-dff3-43df-9c9f-69b80d627720" >
+		<set-variable value="#[[]]" doc:name="set Variable" doc:id="95331505-d111-472f-8ef0-bb71b11390eb" variableName="stockList"/>
+		<logger level="INFO" doc:name="Logger" doc:id="b5badbae-42ab-4bfa-9594-7b937d1d031a" message="#[payload]"/>
+		<foreach doc:name="For Each" doc:id="ec91f242-3bb3-4e34-95f8-6551fff4d9b4" collection="#[payload.skus]">
+			<http:request doc:name="Request" doc:id="3f1fd28c-ce5b-47dd-b443-c518f731995d" path="/api/stock" responseTimeout="10000000" config-ref="HTTP_Request_config">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	sku : payload
+}]]]></http:query-params>
+		</http:request>
+			<ee:transform doc:name="Transform Message" doc:id="44b30ab3-058a-440c-bad5-c2ffa3cc7dff" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (payload is String)
+  {
+    sku: payload,
+    status: "SKU NOT FOUND"
+  }
+else
+  {
+    sku: payload.sku,
+    availableQuantity: payload.availableQuantity,
+    isAvailable: payload.isAvailable
+  }
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.stockList default []) ++ [payload]]" doc:name="Set Variable" doc:id="b9776c95-62d9-48d7-ab25-1b92b6de5fb8" variableName="stockList"/>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="5c18cde6-b645-4a40-82ea-42afa05919b3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  stock: vars.stockList
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="490171e8-011d-4058-91c8-28a0873d3236" >
+		<db:my-sql-connection host="shinkansen.proxy.rlwy.net" port="28083" user="root" password="bIWODKgrKXUaMUawTgXuBYzFJEFCUZgt" database="order_management" />
+	</db:config>
+	<flow name="postOrdersFlow" doc:id="5d5d90d3-6572-4ce9-a4ce-af55a838c2d8" >
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="9e2dea2c-f71a-4ad9-a498-b38d5a7b79d3" variableName="originalPayload" />
+		<set-variable value="#['ORD-' ++ now() as String]" doc:name="Set Variable" doc:id="acdb6d2e-6283-481f-b820-f7c0fd228347" variableName="orderId" />
+		<set-variable value="#[[]]" doc:name="Set Variable" doc:id="9cef79a6-b907-407d-a0f6-03e039b24521" variableName="itemResults" />
+		<db:insert doc:name="Insert" doc:id="97246c8b-5a46-49e0-b359-3d256603c9a3" config-ref="Database_Config1" >
+			<db:sql ><![CDATA[INSERT INTO orders (order_id, request_status)
+VALUES (:orderId, 'CREATED')
+
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  orderId: vars.orderId
+}]]]></db:input-parameters>
+		</db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="9750f863-bbb2-46ab-9937-7191459b154f" message="#[payload]" />
+		<foreach doc:name="For Each" doc:id="8bb61470-b362-4bcb-9d73-c3b05cf81895" collection="#[vars.originalPayload.items]">
+			<set-variable value="#[payload.sku]" doc:name="Set Variable" doc:id="4ba55971-aaf8-485a-9888-095770c4ae07" variableName="sku" />
+			<set-variable value="#[payload.quantity]" doc:name="Set Variable" doc:id="cdcd2e6c-0424-4b22-9b1d-49dc267f883c" variableName="qty" />
+			<db:select doc:name="Select" doc:id="a9cb43cc-7aad-4453-8ff7-5c94ab786433" config-ref="Database_Config1" >
+				<db:sql ><![CDATA[SELECT available_quantity
+FROM stock
+WHERE sku = :sku
+]]></db:sql>
+				<db:input-parameters ><![CDATA[#[{
+  sku: vars.sku
+}]]]></db:input-parameters>
+			</db:select>
+			<ee:transform doc:name="Transform Message" doc:id="ced400dd-5c15-4307-9055-cc5b65540f0f" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (isEmpty(payload)) null else payload[0]
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Logger" doc:id="bbd7428e-30df-444c-a623-f01dce7f0739" message="#[payload]" />
+			<logger level="INFO" doc:name="Logger" doc:id="369509aa-e879-4f43-815f-7b4ab7872703" message="#[vars.qty]" />
+			<choice doc:name="Choice" doc:id="02f6dcd8-e671-41fd-8f4b-589607b55dbe">
+			<when expression="#[payload == null]">
+					<set-variable value="#[(vars.itemResults default []) ++ [{&#10;            sku: vars.sku,&#10;            quantity: vars.qty,&#10;            status: 'SKU NOT FOUND'&#10;        }]]" doc:name="Set Variable" doc:id="4f69791b-efda-4d01-b138-3bf69060810f" variableName="itemResults" />
+				</when>
+				<when expression="#[(payload[0].available_quantity default 0) &gt;= (vars.qty as Number)]">
+					<db:insert doc:name="Insert" doc:id="e4024822-6f8d-4ad3-908b-5b53f0671990" config-ref="Database_Config1">
+						<db:sql><![CDATA[INSERT INTO order_items (order_id, sku, quantity, status)
+VALUES (:orderId, :sku, :qty, 'Order Placed')
+]]></db:sql>
+						<db:input-parameters><![CDATA[#[{
+  orderId: vars.orderId,
+  sku: vars.sku,
+  qty: vars.qty
+}]]]></db:input-parameters>
+					</db:insert>
+					<db:update doc:name="Update" doc:id="c56b7cfc-5a7e-41a5-9dad-f180285e2480" config-ref="Database_Config1">
+						<db:sql><![CDATA[UPDATE stock
+SET available_quantity = available_quantity - :qty
+WHERE sku = :sku
+]]></db:sql>
+						<db:input-parameters><![CDATA[#[{
+  sku: vars.sku,
+  qty: vars.qty
+}]]]></db:input-parameters>
+					</db:update>
+					<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.itemResults default []) ++ [{&#10;  sku: vars.sku,&#10;  quantity: vars.qty,&#10;  status: "Order Placed"&#10;}]]' doc:name="Set Variable" doc:id="548a0a97-078a-4e85-acd4-01c0bd12bc0a" variableName="itemResults" />
+				</when>
+				<otherwise >
+					<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.itemResults default []) ++ [{&#10;  sku: vars.sku,&#10;  quantity: vars.qty,&#10;  status: "Sorry, not placed"&#10;}]]' doc:name="Set Variable" doc:id="829ae367-a0d7-4719-a87e-3460608a0894" variableName="itemResults" />
+				</otherwise>
+		</choice>
+		</foreach>
+		<set-variable value='#[var items = vars.itemResults default []&#10;var placed = sizeOf(items filter (item) -&gt; item.status == "Order Placed")&#10;---&#10;if (placed == sizeOf(items))&#10;    "SUCCESS"&#10;else if (placed &gt; 0)&#10;    "PARTIAL_SUCCESS"&#10;else&#10;    "FAILED"]' doc:name="Set Variable" doc:id="180bac2d-5960-454c-ae98-668d548961d0" variableName="finalStatus" />
+		<db:update doc:name="Update" doc:id="1d5aa86c-f576-4220-9c79-444e1ad3fefc" config-ref="Database_Config1" >
+			<db:sql ><![CDATA[UPDATE orders
+SET request_status = :status
+WHERE order_id = :orderId
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  orderId: vars.orderId,
+  status: vars.finalStatus
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="eedef0f8-2c4f-4294-b716-fd3092cd382e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  orderId: vars.orderId,
+  requestStatus: vars.finalStatus,
+  items: vars.itemResults
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

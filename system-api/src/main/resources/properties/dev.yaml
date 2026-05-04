@@ -1,0 +1,19 @@
+#### HTTP config  Details ####
+http:
+  listener:
+    host: "0.0.0.0"
+    port: "8081"
+    path: "api/*"
+    
+### Database config details #
+database:
+  host: "shinkansen.proxy.rlwy.net"
+  port: "28083"
+  db: "order_management"
+  username: "root"
+  password: "![OioRbRQcQrzWMeAkJtPtsa69zWRcdNcQJUpXkZqW5kfQbgs5HyuONLAYtk56QFRZ]"
+  reconnection:
+    frequency: "2000"
+    attempts: "3"
+    
+#apiId:

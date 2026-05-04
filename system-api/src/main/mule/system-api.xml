@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+   
+    <flow name="system-api-main">
+        <http:listener config-ref="system-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <logger level="INFO" doc:name="Logger" doc:id="4d953244-581d-4dcd-8588-ac43d9e73440" />
+        <apikit:router config-ref="system-api-config" />
+        <error-handler ref="Common-Error_Handler" />
+    </flow>
+    <flow name="get:\stock:system-api-config">
+        <logger level="INFO" doc:name="Start Logger" doc:id="ce0535b5-aa2d-4a67-bdf1-79e9ee3fca08" message="#[payload]" />
+        <flow-ref doc:name="Flow Reference" doc:id="56f3fffc-005f-4c74-889f-6e688d0ccaa8" name="getStockFlow" />
+        <logger level="INFO" doc:name="End Logger" doc:id="bed14c94-29a3-4920-8d1a-75b28f7e39db" message="#[payload]" />
+    </flow>
+    <flow name="post:\orders:application\json:system-api-config">
+        <logger level="INFO" doc:name="Start Logger" doc:id="987527ab-bb49-4d1b-a1b0-d62e1a85f6e8" message="#[payload]" />
+        <flow-ref doc:name="Flow Reference" doc:id="dd462a43-fad3-461a-9012-523aa61124e9" name="postOrdersFlow" />
+        <logger level="INFO" doc:name="End Logger" doc:id="6b86bac6-bb95-4e02-a7b3-9339d505eb0d" message="#[payload]" />
+    </flow>
+</mule>

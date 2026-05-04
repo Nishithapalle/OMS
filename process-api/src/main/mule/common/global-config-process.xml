@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<http:listener-config name="process-api-httpListenerConfig">
+        <http:listener-connection host="${http.listener.host}" port="${http.listener.port}" />
+    </http:listener-config>
+    <apikit:config name="process-api-config" api="resource::8d336d00-a238-4eac-8bfd-dd1f6fb44441:process-api:1.0.0:raml:zip:process-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" parser="AMF"/>
+	<configuration-properties doc:name="Configuration properties" doc:id="02a4bbf4-ce44-43a6-8d4a-85114731e914" file="properties/${mule.env}.yaml" />
+	<global-property doc:name="Global Property" doc:id="8a3c6dd0-306f-451d-a1e6-ffa88adf6327" name="mule.env" value="dev" />
+	<http:request-config name="HTTP_Request_config" doc:name="HTTP Request config" doc:id="1e2f4463-04ca-47c9-ada5-a33f96bc7e36" >
+		<http:request-connection host="${system-api.host}" port="${system-api.port}" protocol="HTTPS">
+			<reconnection >
+				<reconnect frequency="${system-api.reconnection.frequency}" count="${system-api.reconnection.attempts}" />
+			</reconnection>
+		</http:request-connection>
+	</http:request-config>
+	<global-property doc:name="Global Property" doc:id="f5e631c9-7352-4e69-89d4-2ee2462a51b4" name="mule.secure.key" value="ABCD1234EFGH5678" />
+	
+</mule>

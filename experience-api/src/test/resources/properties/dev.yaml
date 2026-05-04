@@ -1,0 +1,17 @@
+#### HTTP Listener config  Details ####
+http:
+  listener:
+    host: "localhost"
+    port: "8081"
+    path: "api/*"
+   
+#### HTTP Request config  Details ####
+process-api:
+  host: "localhost"
+  port: "8082"
+  reconnection:
+    frequency: "2000"
+    attempts: "3"
+    
+## apiId: 
+ 

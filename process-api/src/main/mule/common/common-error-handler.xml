@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="Common-Error_Handler">
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  errorCode: "400",
+  message: error.description default "Bad Request",
+  correlationId: correlationId,
+  timestamp: now()
+}
+	
+]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  errorCode: "404",
+  message: error.description default "Not Found",
+  correlationId: correlationId,
+  timestamp: now()
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  errorCode: "405",
+  message: error.description default "Method Not Allowed",
+  correlationId: correlationId,
+  timestamp: now()
+	
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  errorCode: "406",
+  message: error.description default "Not Acceptable",
+  correlationId: correlationId,
+  timestamp: now()
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  errorCode: "415",
+  message: error.description default "Unsupported Media Type",
+  correlationId: correlationId,
+  timestamp: now()
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  errorCode: "501",
+  message: error.description default "Not Implemented",
+  correlationId: correlationId,
+  timestamp: now()
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[501]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="dbfb7b1c-b25a-45c9-9b74-1c5606d373fe" type="BUSINESS:DUPLICATE_SKU">
+			<set-variable value="400" doc:name="Set Variable" doc:id="1d736134-c46b-4118-bee1-6fedcee1db34" variableName="httpStatus"/>
+			<ee:transform doc:name="Transform Message" doc:id="216d1599-186b-4e0b-8edd-9e974f96ef01" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	errorCode:vars.httpStatus,
+	message:"Duplicate skus found",
+	details:error.description,
+	correlationId: correlationId,
+    timestamp: now()
+	
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="6a03e16d-eafd-4446-99da-bd6e12dbe59a" type="HTTP:CONNECTIVITY">
+			<set-variable value="503" doc:name="Set Variable" doc:id="3e43a744-ad99-4c02-b31f-2ce551ace04e" variableName="httpStatus" />
+			<ee:transform doc:name="Transform Message" doc:id="fe9e5cb6-9392-4d36-8122-051035f545db" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	errorCode:vars.httpStatus,
+	message:"Http connectivity error at process api",
+	details:error.description,
+	correlationId: correlationId,
+    timestamp: now()
+	
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f905e042-df9d-49d9-8ca9-43d91d2af82c" type="HTTP:TIMEOUT">
+			<set-variable value="504" doc:name="Set Variable" doc:id="5056c79e-f9ab-46ee-888b-26cb6c6d4a25" variableName="httpStatus" />
+			<ee:transform doc:name="Transform Message" doc:id="4cc24a86-60d5-4dbd-9721-294550c358f1" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	errorCode:vars.httpStatus,
+	message:"Http timeout error at process api",
+	details:error.description,
+	correlationId: correlationId,
+    timestamp: now()
+	
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="85a724ed-d6d0-497b-88c9-94b520eed6c0" type="ANY">
+			<ee:transform doc:name="Transform Message" doc:id="aafcc5ee-9f89-4aea-9d53-98776cb9ffeb" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if ( error.errorMessage.payload != null ) error.errorMessage.payload
+	else
+	 "service unavailable"
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+        
+</error-handler>
+	</mule>
