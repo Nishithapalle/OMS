@@ -1,0 +1,20 @@
+INSERT INTO stock VALUES 
+('MOB-IPH15-128-BLK', 14, true),
+('LAP-DELL-5480', 0, false),
+('EAR-BT-SONY-WH', 38, true),
+('TV-SAM-55-UHD', 0, false),
+('TAB-SAM-S9', 7, true);
+
+
+INSERT INTO orders VALUES 
+('ORD-20261012-000091', '9876543210', 'SUCCESS'),
+('ORD-20261012-000092', '9876543210', 'FAILED'),
+('ORD-20261012-000093', '9876543210', 'SUCCESS');
+
+
+INSERT INTO order_items (order_id, sku, quantity, status) VALUES
+('ORD-20261012-000091', 'MOB-IPH15-128-BLK', 1, 'Order Placed'),
+('ORD-20261012-000091', 'LAP-DELL-5480', 2, 'Sorry, not placed'),
+('ORD-20261012-000092', 'EAR-BT-SONY-WH', 1, 'Order Placed'),
+('ORD-20261012-000092', 'TV-SAM-55-UHD', 1, 'Sorry, not placed'),
+('ORD-20261012-000093', 'TAB-SAM-S9', 3, 'Order Placed');

@@ -1,0 +1,25 @@
+CREATE DATABASE order_management;
+USE order_management;
+
+CREATE TABLE stock (
+  sku VARCHAR(50) PRIMARY KEY,
+  available_quantity INT,
+  is_available BOOLEAN
+);
+
+
+CREATE TABLE orders (
+  order_id VARCHAR(50) PRIMARY KEY,
+  phone_number VARCHAR(15),
+  request_status VARCHAR(20)
+);
+
+
+CREATE TABLE order_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id VARCHAR(50),
+  sku VARCHAR(50),
+  quantity INT,
+  status VARCHAR(50),
+  FOREIGN KEY (order_id) REFERENCES orders(order_id)
+);
