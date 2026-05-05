@@ -1,0 +1,155 @@
+{
+  "info": {
+    "_postman_id": "090ad56b-f276-40bf-bc33-0497530b45c7",
+    "name": "Order-Management-System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "47246226",
+    "_collection_link": "https://go.postman.co/collection/47246226-090ad56b-f276-40bf-bc33-0497530b45c7?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "system-api",
+      "item": [
+        {
+          "name": "stock",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "order",
+          "request": {
+            "method": "POST",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "process-api",
+      "item": [
+        {
+          "name": "stock",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"skus\": [\r\n    \"MOB-IPH15-128-BLK\",\r\n    \"LAP-DELL-5480\",\r\n    \"EAR-BT-SONY-WH\"\r\n  ]\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8082/api/stock/availability",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "api",
+                "stock",
+                "availability"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"items\": [\r\n    {\r\n      \"sku\": \"MOB-IPH15-128-BLK\",\r\n      \"quantity\": 1\r\n    },\r\n    {\r\n      \"sku\": \"LAP-DELL-5480\",\r\n      \"quantity\": 2\r\n    }\r\n  ]\r\n}\r\n"
+            },
+            "url": {
+              "raw": "http://localhost:8082/api/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "experience",
+      "item": [
+        {
+          "name": "order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"customer\": {\r\n    \"fullName\": \"Sitara\",\r\n    \"phoneNumber\": \"1234567890\",\r\n    \"email\": \"sitara@test.com\",\r\n    \"address\": {\r\n      \"line1\": \"Street 1\",\r\n      \"line2\": \"Near City Mall\",\r\n      \"city\": \"Hyderabad\",\r\n      \"state\": \"Telangana\",\r\n      \"postalCode\": \"500001\"\r\n    }\r\n  },\r\n  \"orderChannel\": \"MOBILE_APP\",\r\n  \"paymentMode\": \"UPI\",\r\n  \"items\": [\r\n    {\r\n      \"sku\": \"MOB-IPH15-128-BLK\",\r\n      \"quantity\": 1\r\n    },\r\n    {\r\n      \"sku\": \"LAP-DELL-5480\",\r\n      \"quantity\": 2\r\n    }\r\n  ],\r\n  \"deliveryPreference\": \"EXPRESS\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "stock",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"skus\": [\r\n    \"MOB-IPH15-128-BLK\",\r\n    \"LAP-DELL-5480\",\r\n    \"EAR-BT-SONY-WH\"\r\n  ]\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/stock/availability",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "stock",
+                "availability"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
