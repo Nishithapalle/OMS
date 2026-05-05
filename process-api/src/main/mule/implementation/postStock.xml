@@ -10,7 +10,13 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<logger level="INFO" doc:name="Logger" doc:id="b5badbae-42ab-4bfa-9594-7b937d1d031a" message="#[payload]"/>
 		<foreach doc:name="For Each" doc:id="ec91f242-3bb3-4e34-95f8-6551fff4d9b4" collection="#[payload.skus]">
 			<http:request doc:name="Request" doc:id="3f1fd28c-ce5b-47dd-b443-c518f731995d" path="/api/stock" responseTimeout="10000000" config-ref="HTTP_Request_config">
-			<http:query-params><![CDATA[#[output application/java
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	client_secret : "31Ab892901f94c3C889C69b2E7d8679d",
+	client_id : "29fad1b3053c4b94a5e7a2cc1a745545"
+}]]]></http:headers>
+				<http:query-params><![CDATA[#[output application/java
 ---
 {
 	sku : payload

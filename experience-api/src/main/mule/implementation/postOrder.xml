@@ -6,7 +6,14 @@
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
 	<flow name="postOrderFlow" doc:id="4cd14f5e-30e5-4f83-a52d-986d288c66a3" >
 		<logger level="INFO" doc:name="Logger" doc:id="e111cf75-fcc3-4cf0-a099-67d04765b7ad" message="#[payload]"/>
-		<http:request doc:name="Request" doc:id="3738414e-1814-494f-a0a2-563e51e7bc52" config-ref="HTTP_Request_config" method="POST" path="/api/orders" responseTimeout="100000000" />
+		<http:request doc:name="Request" doc:id="3738414e-1814-494f-a0a2-563e51e7bc52" config-ref="HTTP_Request_config" method="POST" path="/api/orders" responseTimeout="100000000" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	client_secret : "93C41113cB274131A3F79D6F09299DB1",
+	client_id : "bc7f7051957f43fb90c67ee4618a48c2"
+}]]]></http:headers>
+		</http:request>
 		<logger level="INFO" doc:name="Logger" doc:id="57b783b1-86cc-433c-b7ef-90d5efbc5327" message="#[payload]"/>
 	</flow>
 </mule>

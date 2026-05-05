@@ -7,6 +7,12 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	<flow name="postStockFlow" doc:id="2ba083dc-99c5-4355-b722-20c28b31b6ae" >
 		<logger level="INFO" doc:name="Logger" doc:id="f2477c9b-f9b2-4c4c-9658-137c542b84bb" />
 		<http:request doc:name="Request" doc:id="cba33176-d613-4804-a046-9ffe60959d18" method="POST" path="/api/stock/availability" config-ref="HTTP_Request_config" responseTimeout="100000000">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	client_secret : "93C41113cB274131A3F79D6F09299DB1",
+	client_id : "bc7f7051957f43fb90c67ee4618a48c2"
+}]]]></http:headers>
 			<http:query-params ><![CDATA[#[output application/java
 ---
 {

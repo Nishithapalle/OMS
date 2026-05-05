@@ -26,7 +26,14 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 			</choice>
 		</foreach>
 		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  items: vars.itemResults map (item) -&gt; {&#10;    sku: item.sku,&#10;    quantity: item.quantity&#10;  }&#10;}]" doc:name="Set Payload" doc:id="c0b0bab6-4bd7-4237-9564-179dd7d1b599" />
-		<http:request doc:name="Request" doc:id="ffb517bf-802f-4d55-ade5-e37582df0a47" method="POST" path="/api/orders" config-ref="HTTP_Request_config" responseTimeout="100000000"/>
+		<http:request doc:name="Request" doc:id="ffb517bf-802f-4d55-ade5-e37582df0a47" method="POST" path="/api/orders" config-ref="HTTP_Request_config" responseTimeout="100000000">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	client_secret : "31Ab892901f94c3C889C69b2E7d8679d",
+	client_id : "29fad1b3053c4b94a5e7a2cc1a745545"
+}]]]></http:headers>
+		</http:request>
 		<set-variable value="#[var items = vars.itemResults&#10;var placed = sizeOf(items filter (i) -&gt; i.status == 'Order Placed')&#10;---&#10;if ( placed == sizeOf(items) ) 'SUCCESS'&#10;        else if ( placed &gt; 0 ) 'PARTIAL_SUCCESS'&#10;        else 'FAILED']" doc:name="Set Variable" doc:id="8a90733a-3a64-4554-80cf-6f1c77e0e3e6" variableName="finalStatus"/>
 		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  phoneNumber: vars.originalPayload.customer.phoneNumber,&#10;  requestStatus: vars.finalStatus,&#10;  itemResults: vars.itemResults&#10;}]' doc:name="Set Payload" doc:id="07c4ed91-76c6-4938-8e69-caf2112a9b61" />
 	</flow>
